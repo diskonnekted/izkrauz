@@ -1,4 +1,5 @@
 import streamlit as st
+import json
 import folium
 from streamlit_folium import st_folium
 import ee
@@ -10,9 +11,37 @@ st.markdown("Ini adalah contoh aplikasi web gratis menggunakan Streamlit dan Goo
 
 # 2. INISIALISASI GOOGLE EARTH ENGINE
 try:
-    ee.Initialize()
+    # Baca service account JSON dari Streamlit secrets
+    credentials = ee.ServiceAccountCredentials(
+        st.secrets['GEE']['email'],
+        key_data=st.secrets['GEE']['json']
+    )
+    ee.Initialize(credentials=credentials)
+except KeyError:
+    st.error("Gagal terhubung ke Earth Engine. Pastikan secret `GEE` sudah diatur di Streamlit Cloud Settings.")
+    st.markdown("**Cara menambahkan secret:**")
+    st.markdown("1. Buka https://streamlit.io/cloud")
+    st.markdown("2. Klik project **izkrauz** → tab **Settings**")
+    st.markdown("3. Di section **Secrets**, tambahkan dengan format TOML:")
+    st.code("""[GEE]
+email = "gee-144@baranews.iam.gserviceaccount.com"
+json = '''{
+  "type": "service_account",
+  "project_id": "baranews",
+  "private_key_id": "...",
+  "private_key": "-----BEGIN PRIVATE KEY-----\\n...",
+  "client_email": "gee-144@baranews.iam.gserviceaccount.com",
+  "client_id": "...",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gee-144%40baranews.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}'''
+""", language="toml")
+    st.stop()
 except Exception as e:
-    st.error("Gagal terhubung ke Earth Engine. Pastikan token autentikasi sudah diatur.")
+    st.error(f"Gagal terhubung ke Earth Engine: {e}")
     st.stop()
 
 # 3. MEMBUAT LOGIKA PETA
