@@ -1,7 +1,7 @@
 streamlit
 earthengine-api
-geemap>=0.32.0
-xyzservices
-python-box
+geemap>=0.35.0
+xyzservices>=2024.9.0
+python-box>=7.1.1
 folium
 streamlit-folium
