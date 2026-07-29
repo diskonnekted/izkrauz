@@ -59,11 +59,23 @@ def buat_peta():
         'palette': ['006633', 'E5FFCC', '662A00', 'D8D8D8', 'F5F5F5']
     }
 
-    # Menambahkan layer elevasi ke peta
-    peta.add_tile_layer(
-        url=dataset_dem.toImageUrl(parameter_visual),
-        name='Elevasi (DEM)'
-    )
+    # Menambahkan layer elevasi ke peta menggunakan GEE tile URL
+    tile_url = dataset_dem.toTileImage(parameter_visual)
+    folium.TileLayer(
+        tiles=tile_url,
+        name='Elevasi (DEM)',
+        attr='Google Earth Engine'
+    ).add_to(peta)
+
+    # Tambahkan basemap (OSM) sebagai layer bawah
+    folium.TileLayer(
+        tiles='OpenStreetMap',
+        name='Basemap',
+        control=True
+    ).add_to(peta)
+
+    # Layer control untuk switch antar layer
+    folium.LayerControl().add_to(peta)
 
     return peta
 
