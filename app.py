@@ -46,9 +46,6 @@ except Exception as e:
 
 # 3. MEMBUAT LOGIKA PETA
 def buat_peta():
-    # Membuat peta dengan folium (titik tengah di Indonesia, zoom level 5)
-    peta = folium.Map(location=[-2.5, 118.0], zoom_start=5)
-
     # Memanggil dataset elevasi digital (DEM SRTM) dari server Google
     dataset_dem = ee.Image('USGS/SRTMGL1_003')
 
@@ -59,30 +56,23 @@ def buat_peta():
         'palette': ['006633', 'E5FFCC', '662A00', 'D8D8D8', 'F5F5F5']
     }
 
-    # Menambahkan layer elevasi ke peta menggunakan GEE tile URL
-    map_id_dict = dataset_dem.getMapId(parameter_visual)
-    # Konstruksi tile URL dari mapid
-    mapid = map_id_dict.get('mapid', '')
-    if mapid:
-        # mapid format: projects/{project_id}/maps/{image_id}
-        parts = mapid.split('/')
-        project_id = parts[1] if len(parts) > 1 else ''
-        image_id = parts[3] if len(parts) > 3 else ''
-        tile_url = f'https://earthengine.googleapis.com/v1/projects/{project_id}/images/tiles/{image_id}/{{z}}/{{x}}/{{y}}'
-    else:
-        tile_url = None
-    if tile_url:
-        folium.TileLayer(
-            tiles=tile_url,
-            name='Elevasi (DEM)',
-            attr='Google Earth Engine'
-        ).add_to(peta)
+    # Buat thumbnail dari GEE dengan center & region yang spesifik
+    # Center di Indonesia dengan zoom level ~5
+    thumb_url = dataset_dem.getThumbURL(parameter_visual, {
+        'center': [-2.5, 118.0],
+        'width': 800,
+        'height': 600,
+        'maxPixels': 100000000
+    })
 
-    # Tambahkan basemap (OSM) sebagai layer bawah
-    folium.TileLayer(
-        tiles='OpenStreetMap',
-        name='Basemap',
-        control=True
+    # Membuat peta dengan folium (titik tengah di Indonesia, zoom level 5)
+    peta = folium.Map(location=[-2.5, 118.0], zoom_start=5, tiles='OpenStreetMap')
+
+    # Tambahkan gambar thumbnail GEE sebagai overlay
+    folium.ImageOverlay(
+        image=thumb_url,
+        bounds=[[-32.5, 93.0], [27.5, 143.0]],
+        name='Elevasi (DEM)'
     ).add_to(peta)
 
     # Layer control untuk switch antar layer
