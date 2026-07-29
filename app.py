@@ -60,9 +60,9 @@ def buat_peta():
     }
 
     # Menambahkan layer elevasi ke peta menggunakan GEE tile URL
-    tile_url = dataset_dem.toTileImage(parameter_visual)
+    map_id_dict = dataset_dem.getMapId(parameter_visual)
     folium.TileLayer(
-        tiles=tile_url,
+        tiles=map_id_dict['tile_url'],
         name='Elevasi (DEM)',
         attr='Google Earth Engine'
     ).add_to(peta)
