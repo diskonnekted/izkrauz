@@ -61,8 +61,14 @@ def buat_peta():
 
     # Menambahkan layer elevasi ke peta menggunakan GEE tile URL
     map_id_dict = dataset_dem.getMapId(parameter_visual)
-    tile_url = map_id_dict.get('tile_fetch_url') or map_id_dict.get('tile_url')
-    if tile_url:
+    # Debug: print semua keys yang tersedia
+    st.write("MapId keys:", list(map_id_dict.keys()))
+    st.write("MapId:", map_id_dict)
+    tile_url = (map_id_dict.get('tile_fetch_url')
+                or map_id_dict.get('tile_url')
+                or map_id_dict.get('tileUrl')
+                or map_id_dict.get('url'))
+    if tile_url and 'fetch' in tile_url:
         tile_url = tile_url.replace('fetch', 'tile', 1)
     folium.TileLayer(
         tiles=tile_url,
