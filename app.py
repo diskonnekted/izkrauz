@@ -56,19 +56,24 @@ def buat_peta():
         'palette': ['006633', 'E5FFCC', '662A00', 'D8D8D8', 'F5F5F5']
     }
 
-    # Buat thumbnail dari GEE untuk region Indonesia
-    ee_region = ee.Geometry.BBox(93.0, -32.5, 143.0, 27.5)
-    thumb_url = dataset_dem.getThumbURL(parameter_visual, region=ee_region, scale=200)
-
-    # Membuat peta dengan folium (titik tengah di Indonesia, zoom level 5)
+    # Buat peta dengan folium (titik tengah di Indonesia, zoom level 5)
     peta = folium.Map(location=[-2.5, 118.0], zoom_start=5, tiles='OpenStreetMap')
 
-    # Tambahkan gambar thumbnail GEE sebagai overlay
-    folium.ImageOverlay(
-        image=thumb_url,
-        bounds=[[-32.5, 93.0], [27.5, 143.0]],
-        name='Elevasi (DEM)'
-    ).add_to(peta)
+    # Tambahkan layer GEE menggunakan getMapId + TileLayer
+    map_id_dict = dataset_dem.getMapId(parameter_visual)
+    mapid = map_id_dict.get('mapid', '')
+
+    if mapid:
+        # Gunakan token GEE untuk auth tile layer
+        token = map_id_dict.get('token', '')
+        image_id = mapid.split('/')[-1]
+        tile_url = f'https://earthengine.googleapis.com/v1/projects/earthengine-legacy/images/{image_id}:tile?token={token}'
+
+        folium.TileLayer(
+            tiles=tile_url,
+            name='Elevasi (DEM)',
+            attr='Google Earth Engine'
+        ).add_to(peta)
 
     # Layer control untuk switch antar layer
     folium.LayerControl().add_to(peta)
