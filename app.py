@@ -61,20 +61,22 @@ def buat_peta():
 
     # Menambahkan layer elevasi ke peta menggunakan GEE tile URL
     map_id_dict = dataset_dem.getMapId(parameter_visual)
-    # Debug: print semua keys yang tersedia
-    st.write("MapId keys:", list(map_id_dict.keys()))
-    st.write("MapId:", map_id_dict)
-    tile_url = (map_id_dict.get('tile_fetch_url')
-                or map_id_dict.get('tile_url')
-                or map_id_dict.get('tileUrl')
-                or map_id_dict.get('url'))
-    if tile_url and 'fetch' in tile_url:
-        tile_url = tile_url.replace('fetch', 'tile', 1)
-    folium.TileLayer(
-        tiles=tile_url,
-        name='Elevasi (DEM)',
-        attr='Google Earth Engine'
-    ).add_to(peta)
+    # Konstruksi tile URL dari mapid
+    mapid = map_id_dict.get('mapid', '')
+    if mapid:
+        # mapid format: projects/{project_id}/maps/{image_id}
+        parts = mapid.split('/')
+        project_id = parts[1] if len(parts) > 1 else ''
+        image_id = parts[3] if len(parts) > 3 else ''
+        tile_url = f'https://earthengine.googleapis.com/v1/projects/{project_id}/images/tiles/{image_id}/{{z}}/{{x}}/{{y}}'
+    else:
+        tile_url = None
+    if tile_url:
+        folium.TileLayer(
+            tiles=tile_url,
+            name='Elevasi (DEM)',
+            attr='Google Earth Engine'
+        ).add_to(peta)
 
     # Tambahkan basemap (OSM) sebagai layer bawah
     folium.TileLayer(
